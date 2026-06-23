@@ -1,0 +1,6 @@
+interface:
+  display_name: "Progress Review"
+  short_description: "Review current project status, blockers, related experiments, and next steps."
+  default_prompt: "Review current progress from project files and recommend the next three options."
+policy:
+  allow_implicit_invocation: true

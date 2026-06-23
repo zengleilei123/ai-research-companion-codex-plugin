@@ -1,0 +1,6 @@
+interface:
+  display_name: "Experiment Memory Scout"
+  short_description: "Find prior experiments, weekly notes, and references before planning new work."
+  default_prompt: "Before planning this experiment, scan prior project memory for related evidence and risks."
+policy:
+  allow_implicit_invocation: true

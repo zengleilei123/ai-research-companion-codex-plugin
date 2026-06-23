@@ -1,0 +1,6 @@
+interface:
+  display_name: "Research Project Onboarding"
+  short_description: "Set up a new research workspace with only the essential questions."
+  default_prompt: "Help me set up this research project. Ask at most three key questions, then update the project state."
+policy:
+  allow_implicit_invocation: true

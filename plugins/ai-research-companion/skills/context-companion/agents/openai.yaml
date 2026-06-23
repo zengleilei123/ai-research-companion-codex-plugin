@@ -1,0 +1,6 @@
+interface:
+  display_name: "Research Context Companion"
+  short_description: "Checkpoint or restore research context across compression and agent handoff."
+  default_prompt: "Checkpoint this research session and write the exact next action."
+policy:
+  allow_implicit_invocation: true

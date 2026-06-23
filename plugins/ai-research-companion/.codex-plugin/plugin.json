@@ -1,0 +1,20 @@
+{
+  "name": "ai-research-companion",
+  "version": "0.1.0",
+  "description": "Human-led AI research companion workflows for Codex.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AI Research Companion",
+    "shortDescription": "Strict research mentor, literature scout, MVP planner, and progress reviewer.",
+    "longDescription": "AI Research Companion adds human-led research workflows for project onboarding, related-work scouting, idea taste judgment, experiment memory review, MVP planning, progress review, weekly review, and context checkpointing.",
+    "developerName": "Local developer",
+    "category": "Research",
+    "capabilities": [
+      "skills"
+    ],
+    "defaultPrompt": "Use AI Research Companion to help me set up, evaluate, and progress a human-led research project."
+  }
+}

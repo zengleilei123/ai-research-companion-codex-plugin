@@ -1,0 +1,6 @@
+interface:
+  display_name: "Literature Research"
+  short_description: "Survey papers, repos, baselines, and novelty risk for a research idea."
+  default_prompt: "Research this idea. Check local references first, identify gaps, and recommend the strongest baseline."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,20 @@
+{
+  "name": "ai-research-companion",
+  "interface": {
+    "displayName": "AI Research Companion"
+  },
+  "plugins": [
+    {
+      "name": "ai-research-companion",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-research-companion"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Research"
+    }
+  ]
+}

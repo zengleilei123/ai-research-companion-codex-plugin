@@ -1,0 +1,6 @@
+interface:
+  display_name: "Idea Judge"
+  short_description: "Turn a raw idea into a falsifiable hypothesis, baseline, MVP, and decision."
+  default_prompt: "Judge this raw idea and recommend DO_NOW, PARK, REJECT, or REFRAME."
+policy:
+  allow_implicit_invocation: true
