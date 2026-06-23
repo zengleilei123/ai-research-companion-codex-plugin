@@ -1,0 +1,6 @@
+interface:
+  display_name: "Training Monitor"
+  short_description: "Monitor ML training health and alerts."
+  default_prompt: "Use $training-monitor to inspect my active training run and tell me whether to continue, intervene, or stop."
+policy:
+  allow_implicit_invocation: true
