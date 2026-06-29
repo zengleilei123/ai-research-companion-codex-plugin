@@ -1,6 +1,6 @@
 interface:
   display_name: "Weekly Research Review"
   short_description: "Create a weekly research review from journals, experiments, and decisions."
-  default_prompt: "Produce a weekly research review from repository-backed evidence."
+  default_prompt: "Use $weekly-review to produce a weekly research review from repository-backed evidence."
 policy:
   allow_implicit_invocation: true

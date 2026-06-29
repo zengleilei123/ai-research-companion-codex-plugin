@@ -12,6 +12,8 @@ journal/
 experiments/
 knowledge/
 references/
+!plugins/ai-research-companion/skills/*/references/
+!plugins/ai-research-companion/skills/*/references/**
 templates/
 bin/
 node_modules/

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Project Schema"
+  short_description: "Create standard research workspace files."
+  default_prompt: "Use $project-schema to create or validate the standard research project structure."

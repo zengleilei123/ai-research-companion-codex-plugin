@@ -1,6 +1,6 @@
 interface:
   display_name: "Strict Research Mentor"
   short_description: "Judge research and engineering taste before an idea enters MVP."
-  default_prompt: "Strictly judge this idea from research taste, engineering taste, references, baselines, and MVP feasibility."
+  default_prompt: "Use $research-mentor to strictly judge this idea from research taste, engineering taste, references, baselines, and MVP feasibility."
 policy:
   allow_implicit_invocation: true

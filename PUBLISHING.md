@@ -8,7 +8,9 @@ Use this checklist to publish the plugin without leaking project-specific state.
 - `plugins/ai-research-companion/.codex-plugin/plugin.json`
 - `plugins/ai-research-companion/skills/**`
 - `README.md`
+- `README.en.md`
 - `PUBLISHING.md`
+- `.github/workflows/validate.yml`
 - `.gitignore`
 
 ## What not to include
@@ -32,7 +34,7 @@ From this directory:
 
 ```bash
 git init
-git add README.md PUBLISHING.md .gitignore .agents plugins
+git add README.md README.en.md PUBLISHING.md .gitignore .github .agents plugins
 git commit -m "feat: publish AI Research Companion Codex plugin"
 git branch -M main
 git remote add origin git@github.com:<your-user-or-org>/<repo>.git
@@ -53,4 +55,3 @@ After publishing:
 ```bash
 codex plugin marketplace add https://github.com/<your-user-or-org>/<repo>.git --sparse .agents/plugins
 ```
-

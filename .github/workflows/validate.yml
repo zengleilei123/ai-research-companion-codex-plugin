@@ -1,0 +1,76 @@
+name: Validate plugin
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate plugin JSON
+        run: python -m json.tool plugins/ai-research-companion/.codex-plugin/plugin.json >/dev/null
+
+      - name: Validate skill frontmatter and forbidden files
+        run: |
+          python <<'PY'
+          import re
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          root = Path(".")
+          forbidden_prefixes = [
+              ".local-keys/",
+              ".research/",
+              "experiments/",
+              "journal/",
+              "knowledge/",
+              "references/",
+              "templates/",
+              "bin/",
+          ]
+          tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+          bad = [p for p in tracked if any(p.startswith(prefix) for prefix in forbidden_prefixes)]
+          if bad:
+              print("Forbidden project/private files found:")
+              for path in bad:
+                  print(f"- {path}")
+              sys.exit(1)
+
+          skill_root = root / "plugins" / "ai-research-companion" / "skills"
+          names = set()
+          for skill_md in sorted(skill_root.glob("*/SKILL.md")):
+              text = skill_md.read_text(encoding="utf-8")
+              match = re.match(r"---\n(.*?)\n---\n", text, re.S)
+              if not match:
+                  print(f"Missing YAML frontmatter: {skill_md}")
+                  sys.exit(1)
+              frontmatter = match.group(1)
+              fields = {}
+              for line in frontmatter.splitlines():
+                  if ":" in line:
+                      key, value = line.split(":", 1)
+                      fields[key.strip()] = value.strip()
+              name = fields.get("name", "")
+              description = fields.get("description", "")
+              if not name or not description:
+                  print(f"Missing name/description: {skill_md}")
+                  sys.exit(1)
+              if not re.fullmatch(r"[a-z0-9-]{1,63}", name):
+                  print(f"Invalid skill name {name!r}: {skill_md}")
+                  sys.exit(1)
+              if name in names:
+                  print(f"Duplicate skill name: {name}")
+                  sys.exit(1)
+              names.add(name)
+              if skill_md.parent.name != name:
+                  print(f"Folder/name mismatch: {skill_md.parent.name} != {name}")
+                  sys.exit(1)
+
+          print(f"Validated {len(names)} skills.")
+          PY

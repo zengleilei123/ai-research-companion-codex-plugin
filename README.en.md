@@ -27,7 +27,9 @@ This repository is an orchestration layer, not a bundle that tries to replace ev
 
 ```mermaid
 flowchart TD
-    A["New project / new idea"] --> B["project-onboarding<br/>project setup"]
+    A["Natural-language request"] --> R["research-router<br/>choose minimal skill sequence"]
+    R --> S["project-schema<br/>research memory structure"]
+    S --> B["project-onboarding<br/>project setup"]
     B --> C["literature-research<br/>papers and code scouting"]
     C --> D["idea-judge + research-mentor<br/>taste / feasibility / MVP gate"]
     D -->|"DO_NOW"| E["experiment-memory-scout<br/>prior experiments and evidence"]
@@ -62,7 +64,8 @@ Suggested composition:
 
 | Stage | This plugin handles | Optional external skill |
 | --- | --- | --- |
-| Project start | `project-onboarding` clarifies problem, resources, baselines, and MVP | Not needed yet |
+| Natural-language entry | `research-router` decides which skill should run first | Not needed yet |
+| Project start | `project-schema` creates the memory layout, `project-onboarding` clarifies problem, resources, baselines, and MVP | Not needed yet |
 | Idea judgment | `idea-judge` / `research-mentor` returns DO_NOW, PARK, REJECT, or REFRAME | Supervisor-Skills `idea-evaluator` for a second opinion |
 | Survey | `literature-research` finds papers, baselines, code, and novelty risks | Supervisor-Skills `vibe-research-workflow` for AI-assisted research process guidance |
 | Experiments | `experiment-memory-scout` avoids duplicate work, `training-monitor` monitors run health, `progress-review` checks blockers | Usually not needed unless you are shaping figures or paper story |
@@ -95,6 +98,8 @@ I have a new research idea. First onboard the project, then strictly judge wheth
 You can also invoke a bundled skill explicitly:
 
 ```text
+$ai-research-companion:research-router decide which research skill should handle this request.
+$ai-research-companion:project-schema create or validate the research memory structure for this project.
 $ai-research-companion:research-mentor strictly evaluate this idea's research taste, engineering feasibility, and minimal validation experiment.
 $ai-research-companion:literature-research find related papers, baselines, and reference code.
 $ai-research-companion:training-monitor inspect my current training run and tell me whether to continue, intervene, or stop.
@@ -127,6 +132,8 @@ Or invoke skills explicitly:
 
 ```text
 /project-onboarding
+/project-schema create the project research structure.
+/research-router decide whether to start with survey, idea evaluation, training monitoring, or progress review.
 /research-mentor strictly evaluate this idea.
 /literature-research find related papers, baselines, and code.
 /training-monitor monitor the current training process.
@@ -180,7 +187,7 @@ If the project has entered the writing phase, call research-paper-writing to rev
 
 ## Automated Training Monitoring
 
-Version `0.2.0` adds `training-monitor`, which turns logs, metrics, checkpoints, and resource status into research decisions. It is useful for monitoring:
+This plugin includes `training-monitor`, which turns logs, metrics, checkpoints, and resource status into research decisions. It is useful for monitoring:
 
 - whether loss / validation loss / target metrics are converging normally
 - NaN, Inf, CUDA OOM, killed processes, dataloader crashes
@@ -204,12 +211,20 @@ $ai-research-companion:training-monitor inspect experiments/exp_023 and logs/tra
 Classify the run as healthy_continue, watch_closely, intervene_now, stop_or_restart, or insufficient_signal, then give exactly three next options.
 ```
 
+The skill also includes a read-only structured collector:
+
+```bash
+plugins/ai-research-companion/skills/training-monitor/scripts/collect_training_signals.py --run experiments/exp_023 --gpu
+```
+
 First principle: monitoring is not for pretty reports. It is for reducing wasted training time. Training health is an engineering signal; whether the project should continue still depends on prior evidence from `experiment-memory-scout` and hypothesis judgment from `research-mentor`.
 
 ## Bundled Skills
 
 | Skill | When to use | Output |
 | --- | --- | --- |
+| `research-router` | Broad natural-language requests or multiple possible skills | Minimal skill sequence, first skill, follow-up skills |
+| `project-schema` | New project, missing `.research/`, experiments, references, or gap states | Standard research workspace structure, starter files, schema risks |
 | `project-onboarding` | New project or unclear project setup | Research target, constraints, baselines, MVP, setup questions |
 | `literature-research` | Before idea evaluation or experiments | Papers, code, baselines, novelty risks, reference gaps |
 | `research-mentor` | When strict advisor judgment is needed | Engineering/research feasibility, taste judgment, MVP design |
@@ -233,6 +248,7 @@ AI Research Companion decides when and how to research, evaluate, and organize e
 
 ```text
 .agents/plugins/marketplace.json
+.github/workflows/validate.yml
 plugins/ai-research-companion/.codex-plugin/plugin.json
 plugins/ai-research-companion/skills/
 README.md

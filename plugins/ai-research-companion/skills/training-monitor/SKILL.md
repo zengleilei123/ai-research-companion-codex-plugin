@@ -39,21 +39,37 @@ If available and safe, use read-only system probes such as `nvidia-smi`, `ps`, `
 ## Workflow
 
 1. Identify the active run, training objective, dataset, baseline, metric, and expected checkpoint/log paths.
-2. Collect telemetry:
+2. Prefer the bundled structured collector when local files are available:
+   - `scripts/collect_training_signals.py --run <run_dir>`
+   - `scripts/collect_training_signals.py --log <log_file> --checkpoint <checkpoint_dir> --gpu`
+3. Collect telemetry:
    - latest training/validation loss and target metric
    - checkpoint cadence and newest checkpoint time
    - recent errors, warnings, NaN/Inf, OOM, tracebacks, or killed processes
    - GPU memory/utilization, CPU/dataloader bottlenecks, disk pressure
    - run age, last log update, estimated progress if available
-3. Compare against prior experiments using `experiment-memory-scout` when the run claims to continue, reproduce, or improve a previous result.
-4. Classify run health:
+4. Compare against prior experiments using `experiment-memory-scout` when the run claims to continue, reproduce, or improve a previous result.
+5. Classify run health:
    - `healthy_continue`
    - `watch_closely`
    - `intervene_now`
    - `stop_or_restart`
    - `insufficient_signal`
-5. Explain the decision using file paths, log snippets, metric values, or timestamps.
-6. If appropriate, create or update `experiments/<run>/monitor.md` with a short monitoring note.
+6. Explain the decision using file paths, log snippets, metric values, or timestamps.
+7. If appropriate, create or update `experiments/<run>/monitor.md` with a short monitoring note.
+
+## Bundled Script
+
+Use `scripts/collect_training_signals.py` for repeatable read-only telemetry collection. It emits JSON with:
+
+- scanned log files
+- latest metric values parsed from log tails
+- detected alert patterns
+- newest checkpoint age
+- optional GPU utilization via `nvidia-smi`
+- coarse health classification
+
+Do not treat the script's health classification as final. Use it as input to the research interpretation.
 
 ## Alert Conditions
 
