@@ -10,6 +10,8 @@ This schema defines project-local files that other skills can rely on. It is int
   context/
     SESSION_STATE.md
     NEXT_PROMPT.md
+  changes/
+    index.md
 experiments/
   <YYYYMMDD_slug>/
     exp.yaml
@@ -93,6 +95,37 @@ Continue this research project from repository-backed state.
 First read .research/context/SESSION_STATE.md, then inspect the referenced experiment and notes.
 The next action is: ...
 ```
+
+## Change Memory
+
+`.research/changes/index.md` keeps a short table of project modifications and why they were made:
+
+```text
+# Change Memory Index
+
+| Date | Scope | Summary | Evidence | Next |
+| --- | --- | --- | --- | --- |
+```
+
+Daily or session entries live in `.research/changes/YYYY-MM-DD.md`:
+
+```text
+# Change Memory - 2026-06-29
+
+## HH:MM - short summary
+
+- Objective:
+- Scope:
+- Files changed:
+- Rationale:
+- Evidence:
+- Commands/tests:
+- Decisions:
+- Risks:
+- Next actions:
+```
+
+Store summaries, file paths, commands, and decision-relevant evidence. Do not store secrets, raw logs, raw datasets, or long diffs.
 
 ## `exp.yaml`
 

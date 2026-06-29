@@ -30,6 +30,7 @@ Create these directories when missing:
 
 ```text
 .research/context/
+.research/changes/
 experiments/
 journal/daily/
 journal/weekly/
@@ -48,6 +49,7 @@ Create starter files only when absent:
 .research/settings.yaml
 .research/context/SESSION_STATE.md
 .research/context/NEXT_PROMPT.md
+.research/changes/index.md
 references/papers/index.md
 references/code/index.md
 ```
@@ -85,6 +87,7 @@ Return:
 - Workspace classification
 - Files/directories created
 - Existing useful memory files
+- Existing change-memory files
 - Missing project decisions
 - Risks from missing schema fields
 - Exactly three recommended next options

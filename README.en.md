@@ -16,6 +16,7 @@ Most AI coding agents are good at executing a clear task. Research is harder bec
 - Have papers or codebases already validated something similar?
 - Is the current experiment testing the core hypothesis, or just adding work?
 - Is model training healthy, or has it hit NaN, OOM, overfitting, stagnation, or resource waste?
+- After each project change, does the agent remember why it changed, what was verified, and which risks remain?
 - When you run experiments in week two or three, does the agent remember what failed last week?
 - When should the project move into writing, and when should it park, reject, or reframe?
 
@@ -40,7 +41,8 @@ flowchart TD
     H --> I["weekly-review<br/>track decision"]
     I -->|"enough evidence"| J["paper writing and submission prep"]
     I -->|"not enough evidence"| E
-    J --> K["context-companion<br/>state and next prompt"]
+    J --> K["change-memory<br/>change rationale and evidence"]
+    K --> L["context-companion<br/>state and next prompt"]
 ```
 
 ## How It Composes with External Skills
@@ -68,7 +70,7 @@ Suggested composition:
 | Project start | `project-schema` creates the memory layout, `project-onboarding` clarifies problem, resources, baselines, and MVP | Not needed yet |
 | Idea judgment | `idea-judge` / `research-mentor` returns DO_NOW, PARK, REJECT, or REFRAME | Supervisor-Skills `idea-evaluator` for a second opinion |
 | Survey | `literature-research` finds papers, baselines, code, and novelty risks | Supervisor-Skills `vibe-research-workflow` for AI-assisted research process guidance |
-| Experiments | `experiment-memory-scout` avoids duplicate work, `training-monitor` monitors run health, `progress-review` checks blockers | Usually not needed unless you are shaping figures or paper story |
+| Experiments | `experiment-memory-scout` avoids duplicate work, `training-monitor` monitors run health, `progress-review` checks blockers, `change-memory` records experiment config changes and rationale | Usually not needed unless you are shaping figures or paper story |
 | Paper shaping | `weekly-review` decides whether evidence is ready for writing | Supervisor-Skills `tech-paper-template` / `benchmark-paper-template` |
 | Figures and presentation | Tracks figure intent and evidence source | Supervisor-Skills `figure-designer` |
 | Pre-submission | `context-companion` preserves state | Supervisor-Skills `pre-submission-reviewer`, Research-Paper-Writing-Skills `research-paper-writing` |
@@ -103,6 +105,7 @@ $ai-research-companion:project-schema create or validate the research memory str
 $ai-research-companion:research-mentor strictly evaluate this idea's research taste, engineering feasibility, and minimal validation experiment.
 $ai-research-companion:literature-research find related papers, baselines, and reference code.
 $ai-research-companion:training-monitor inspect my current training run and tell me whether to continue, intervene, or stop.
+$ai-research-companion:change-memory record what changed, why it changed, what was verified, and what should happen next.
 $ai-research-companion:progress-review review current progress, blockers, and prior-week evidence.
 ```
 
@@ -137,6 +140,7 @@ Or invoke skills explicitly:
 /research-mentor strictly evaluate this idea.
 /literature-research find related papers, baselines, and code.
 /training-monitor monitor the current training process.
+/change-memory record this project modification, its rationale, evidence, and next step.
 /weekly-review produce this week's research review.
 ```
 
@@ -219,6 +223,45 @@ plugins/ai-research-companion/skills/training-monitor/scripts/collect_training_s
 
 First principle: monitoring is not for pretty reports. It is for reducing wasted training time. Training health is an engineering signal; whether the project should continue still depends on prior evidence from `experiment-memory-scout` and hypothesis judgment from `research-mentor`.
 
+## Project Change Memory
+
+When long context gets slow or compressed, the most fragile memory is not the code diff. It is why the change was made. This version adds `change-memory` to record each important modification inside your research project:
+
+- files changed
+- rationale
+- evidence inspected
+- commands or tests run
+- decisions made
+- remaining risks
+- next action
+
+It uses the project-local memory structure:
+
+```text
+.research/changes/index.md
+.research/changes/YYYY-MM-DD.md
+```
+
+Recommended natural-language usage:
+
+```text
+I just finished a round of experiment config and code changes. Record change memory, focusing on why the change was made and what was verified.
+```
+
+Before ending a long session:
+
+```text
+First record change memory for this session, then use context-companion to write the next resume prompt.
+```
+
+The skill includes a read-only git signal collector:
+
+```bash
+plugins/ai-research-companion/skills/change-memory/scripts/collect_change_signals.py --repo . --include-diff-stat
+```
+
+First principle: git records what happened; change memory records why it happened and how to continue. You need both.
+
 ## Bundled Skills
 
 | Skill | When to use | Output |
@@ -231,6 +274,7 @@ First principle: monitoring is not for pretty reports. It is for reducing wasted
 | `idea-judge` | When a raw idea needs a decision | Falsifiable hypothesis, success/failure criteria, DO_NOW/PARK/REJECT/REFRAME |
 | `experiment-memory-scout` | Before starting or interpreting experiments | Prior experiments, weekly reviews, similar failures, reusable evidence |
 | `training-monitor` | During or after model training | Loss/metric/checkpoint/GPU/error signals, health classification, continue/intervene decision |
+| `change-memory` | After project edits, experiment config changes, or before context compression | Change summary, rationale, evidence, commands/tests, risks, and next action |
 | `progress-review` | When checking project status | Progress, blockers, risks, next actions |
 | `weekly-review` | Weekly review | continue / park / reject / reframe decision |
 | `context-companion` | Before context compression or agent switching | Current state and next starting prompt |
