@@ -14,12 +14,12 @@ jobs:
 
       - name: Validate plugin JSON
         run: |
-          python -m json.tool .agents/plugins/marketplace.json >/dev/null
-          python -m json.tool plugins/ai-research-companion/.codex-plugin/plugin.json >/dev/null
+          python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
+          python3 -m json.tool plugins/ai-research-companion/.codex-plugin/plugin.json >/dev/null
 
       - name: Validate plugin structure, skills, and docs
         run: |
-          python <<'PY'
+          python3 <<'PY'
           import json
           import os
           import re
@@ -115,7 +115,7 @@ jobs:
               if not os.access(script, os.X_OK):
                   errors.append(f"Script is not executable: {script}")
               result = subprocess.run(
-                  ["python", "-m", "py_compile", str(script)],
+                  ["python3", "-m", "py_compile", str(script)],
                   env={**os.environ, "PYTHONPYCACHEPREFIX": "/tmp/airc-pycache"},
                   capture_output=True,
                   text=True,

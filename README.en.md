@@ -16,6 +16,7 @@ Most AI coding agents are good at executing a clear task. Research is harder bec
 - Have papers or codebases already validated something similar?
 - Is the current experiment testing the core hypothesis, or just adding work?
 - Is model training healthy, or has it hit NaN, OOM, overfitting, stagnation, or resource waste?
+- Is there one status bar view for project memory, experiments, training, references, and handoff risk?
 - After each project change, does the agent remember why it changed, what was verified, and which risks remain?
 - When you run experiments in week two or three, does the agent remember what failed last week?
 - When should the project move into writing, and when should it park, reject, or reframe?
@@ -37,7 +38,8 @@ flowchart TD
     D -->|"PARK / REJECT / REFRAME"| C
     E --> F["MVP experiment"]
     F --> G["training-monitor<br/>training health monitoring"]
-    G --> H["progress-review<br/>progress and blockers"]
+    G --> O["status-board<br/>bars and observability panel"]
+    O --> H["progress-review<br/>progress and blockers"]
     H --> I["weekly-review<br/>track decision"]
     I -->|"enough evidence"| J["paper writing and submission prep"]
     I -->|"not enough evidence"| E
@@ -70,7 +72,7 @@ Suggested composition:
 | Project start | `project-schema` creates the memory layout, `project-onboarding` clarifies problem, resources, baselines, and MVP | Not needed yet |
 | Idea judgment | `idea-judge` / `research-mentor` returns DO_NOW, PARK, REJECT, or REFRAME | Supervisor-Skills `idea-evaluator` for a second opinion |
 | Survey | `literature-research` finds papers, baselines, code, and novelty risks | Supervisor-Skills `vibe-research-workflow` for AI-assisted research process guidance |
-| Experiments | `experiment-memory-scout` avoids duplicate work, `training-monitor` monitors run health, `progress-review` checks blockers, `change-memory` records experiment config changes and rationale | Usually not needed unless you are shaping figures or paper story |
+| Experiments | `experiment-memory-scout` avoids duplicate work, `training-monitor` monitors run health, `status-board` shows observability bars, `progress-review` checks blockers, `change-memory` records experiment config changes and rationale | Usually not needed unless you are shaping figures or paper story |
 | Paper shaping | `weekly-review` decides whether evidence is ready for writing | Supervisor-Skills `tech-paper-template` / `benchmark-paper-template` |
 | Figures and presentation | Tracks figure intent and evidence source | Supervisor-Skills `figure-designer` |
 | Pre-submission | `context-companion` preserves state | Supervisor-Skills `pre-submission-reviewer`, Research-Paper-Writing-Skills `research-paper-writing` |
@@ -105,6 +107,7 @@ $ai-research-companion:project-schema create or validate the research memory str
 $ai-research-companion:research-mentor strictly evaluate this idea's research taste, engineering feasibility, and minimal validation experiment.
 $ai-research-companion:literature-research find related papers, baselines, and reference code.
 $ai-research-companion:training-monitor inspect my current training run and tell me whether to continue, intervene, or stop.
+$ai-research-companion:status-board show current project status bars, risks, and observability gaps.
 $ai-research-companion:change-memory record what changed, why it changed, what was verified, and what should happen next.
 $ai-research-companion:progress-review review current progress, blockers, and prior-week evidence.
 ```
@@ -140,6 +143,7 @@ Or invoke skills explicitly:
 /research-mentor strictly evaluate this idea.
 /literature-research find related papers, baselines, and code.
 /training-monitor monitor the current training process.
+/status-board show the current project status bars and observability gaps.
 /change-memory record this project modification, its rationale, evidence, and next step.
 /weekly-review produce this week's research review.
 ```
@@ -223,6 +227,50 @@ plugins/ai-research-companion/skills/training-monitor/scripts/collect_training_s
 
 First principle: monitoring is not for pretty reports. It is for reducing wasted training time. Training health is an engineering signal; whether the project should continue still depends on prior evidence from `experiment-memory-scout` and hypothesis judgment from `research-mentor`.
 
+## Realtime Status Bars and Observability Panel
+
+This version includes `status-board`, which compresses project state into readable status bars:
+
+```text
+Research Status Board
+Overall             [########--] 80% watch
+Project Memory      [#########-] 90% ok
+Experiments         [######----] 60% watch
+Training Observed   [####------] 40% gap
+References          [#######---] 70% ok
+Change Memory       [########--] 80% ok
+Context Handoff     [#####-----] 50% gap
+```
+
+It does not replace detailed run diagnosis. It shows whether the overall research project is observable, recoverable, and ready to continue. By default it checks:
+
+- `.research/settings.yaml`, `.research/status.md`, `SESSION_STATE.md`, and `NEXT_PROMPT.md`
+- experiment plans, monitor notes, and results under `experiments/`
+- training logs, checkpoints, and common alert patterns
+- `references/papers/index.md` and `references/code/index.md`
+- change memory under `.research/changes/`
+- whether git has unrecorded changes
+
+Natural-language usage:
+
+```text
+Show the current project status board, identify which bars are gaps, and give me three next steps.
+```
+
+Save a project status file:
+
+```bash
+plugins/ai-research-companion/skills/status-board/scripts/collect_status_board.py --repo . --format markdown --write-status .research/status.md
+```
+
+Refresh in a terminal:
+
+```bash
+plugins/ai-research-companion/skills/status-board/scripts/collect_status_board.py --repo . --format text --watch --interval 30
+```
+
+First principle: the status board is not decoration. It makes research system gaps visible. A low bar should route to the relevant skill: `training-monitor` for training gaps, `context-companion` for handoff gaps, and `change-memory` for modification-memory gaps.
+
 ## Project Change Memory
 
 When long context gets slow or compressed, the most fragile memory is not the code diff. It is why the change was made. This version adds `change-memory` to record each important modification inside your research project:
@@ -274,6 +322,7 @@ First principle: git records what happened; change memory records why it happene
 | `idea-judge` | When a raw idea needs a decision | Falsifiable hypothesis, success/failure criteria, DO_NOW/PARK/REJECT/REFRAME |
 | `experiment-memory-scout` | Before starting or interpreting experiments | Prior experiments, weekly reviews, similar failures, reusable evidence |
 | `training-monitor` | During or after model training | Loss/metric/checkpoint/GPU/error signals, health classification, continue/intervene decision |
+| `status-board` | When you want status bars, a realtime observability panel, or a project health overview | Bars for project memory, experiments, training, references, change memory, and context handoff |
 | `change-memory` | After project edits, experiment config changes, or before context compression | Change summary, rationale, evidence, commands/tests, risks, and next action |
 | `progress-review` | When checking project status | Progress, blockers, risks, next actions |
 | `weekly-review` | Weekly review | continue / park / reject / reframe decision |

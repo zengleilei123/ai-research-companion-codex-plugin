@@ -1,15 +1,15 @@
 {
   "name": "ai-research-companion",
-  "version": "0.4.1",
-  "description": "Human-led AI research companion workflows and project change memory for Codex.",
+  "version": "0.5.0",
+  "description": "Human-led AI research companion workflows, project memory, and observable status boards for Codex.",
   "author": {
     "name": "Local developer"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "AI Research Companion",
-    "shortDescription": "Research router, mentor, schema, MVP planner, training monitor, and change memory.",
-    "longDescription": "AI Research Companion adds human-led research workflows for project schema setup, project onboarding, skill routing, related-work scouting, idea taste judgment, experiment memory review, training run monitoring, project change memory, MVP planning, progress review, weekly review, and context checkpointing.",
+    "shortDescription": "Research router, mentor, schema, MVP planner, training monitor, status board, and change memory.",
+    "longDescription": "AI Research Companion adds human-led research workflows for project schema setup, project onboarding, skill routing, related-work scouting, idea taste judgment, experiment memory review, training run monitoring, observable project status boards, project change memory, MVP planning, progress review, weekly review, and context checkpointing.",
     "developerName": "Local developer",
     "category": "Research",
     "capabilities": [

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Research Status Board"
+  short_description: "Show project status bars and observability."
+  default_prompt: "Use $status-board to show the current research project status, risks, and observability bars."
+policy:
+  allow_implicit_invocation: true

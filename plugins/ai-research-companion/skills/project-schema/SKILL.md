@@ -47,6 +47,7 @@ Create starter files only when absent:
 
 ```text
 .research/settings.yaml
+.research/status.md
 .research/context/SESSION_STATE.md
 .research/context/NEXT_PROMPT.md
 .research/changes/index.md
