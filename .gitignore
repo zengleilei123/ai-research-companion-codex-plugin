@@ -1,6 +1,8 @@
 .DS_Store
 *.log
 *.tmp
+.github_known_hosts
+.local-keys/
 *.sqlite
 *.db
 __pycache__/

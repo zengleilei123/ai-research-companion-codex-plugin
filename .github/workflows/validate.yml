@@ -13,34 +13,65 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate plugin JSON
-        run: python -m json.tool plugins/ai-research-companion/.codex-plugin/plugin.json >/dev/null
+        run: |
+          python -m json.tool .agents/plugins/marketplace.json >/dev/null
+          python -m json.tool plugins/ai-research-companion/.codex-plugin/plugin.json >/dev/null
 
-      - name: Validate skill frontmatter and forbidden files
+      - name: Validate plugin structure, skills, and docs
         run: |
           python <<'PY'
+          import json
+          import os
           import re
           import subprocess
           import sys
           from pathlib import Path
 
           root = Path(".")
+          errors = []
+
+          manifest_path = root / "plugins" / "ai-research-companion" / ".codex-plugin" / "plugin.json"
+          marketplace_path = root / ".agents" / "plugins" / "marketplace.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+
+          if manifest.get("name") != "ai-research-companion":
+              errors.append("plugin manifest name must be ai-research-companion")
+          if manifest.get("skills") != "./skills/":
+              errors.append("plugin manifest skills path must be ./skills/")
+          if not (manifest_path.parent.parent / "skills").is_dir():
+              errors.append("plugin skills directory is missing")
+
+          plugins = marketplace.get("plugins", [])
+          if len(plugins) != 1:
+              errors.append("marketplace must contain exactly one plugin")
+          else:
+              entry = plugins[0]
+              if entry.get("name") != "ai-research-companion":
+                  errors.append("marketplace plugin name must be ai-research-companion")
+              if entry.get("source", {}).get("path") != "./plugins/ai-research-companion":
+                  errors.append("marketplace source path must be ./plugins/ai-research-companion")
+
           forbidden_prefixes = [
+              ".github_known_hosts",
               ".local-keys/",
               ".research/",
+              ".env",
               "experiments/",
               "journal/",
               "knowledge/",
               "references/",
               "templates/",
               "bin/",
+              "logs/",
+              "secrets/",
           ]
           tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
           bad = [p for p in tracked if any(p.startswith(prefix) for prefix in forbidden_prefixes)]
           if bad:
-              print("Forbidden project/private files found:")
+              errors.append("Forbidden project/private files found:")
               for path in bad:
-                  print(f"- {path}")
-              sys.exit(1)
+                  errors.append(f"- {path}")
 
           skill_root = root / "plugins" / "ai-research-companion" / "skills"
           names = set()
@@ -48,8 +79,8 @@ jobs:
               text = skill_md.read_text(encoding="utf-8")
               match = re.match(r"---\n(.*?)\n---\n", text, re.S)
               if not match:
-                  print(f"Missing YAML frontmatter: {skill_md}")
-                  sys.exit(1)
+                  errors.append(f"Missing YAML frontmatter: {skill_md}")
+                  continue
               frontmatter = match.group(1)
               fields = {}
               for line in frontmatter.splitlines():
@@ -59,18 +90,51 @@ jobs:
               name = fields.get("name", "")
               description = fields.get("description", "")
               if not name or not description:
-                  print(f"Missing name/description: {skill_md}")
-                  sys.exit(1)
+                  errors.append(f"Missing name/description: {skill_md}")
+                  continue
               if not re.fullmatch(r"[a-z0-9-]{1,63}", name):
-                  print(f"Invalid skill name {name!r}: {skill_md}")
-                  sys.exit(1)
+                  errors.append(f"Invalid skill name {name!r}: {skill_md}")
               if name in names:
-                  print(f"Duplicate skill name: {name}")
-                  sys.exit(1)
+                  errors.append(f"Duplicate skill name: {name}")
               names.add(name)
               if skill_md.parent.name != name:
-                  print(f"Folder/name mismatch: {skill_md.parent.name} != {name}")
-                  sys.exit(1)
+                  errors.append(f"Folder/name mismatch: {skill_md.parent.name} != {name}")
+              if "TODO" in text:
+                  errors.append(f"TODO placeholder left in {skill_md}")
+
+              agents_yaml = skill_md.parent / "agents" / "openai.yaml"
+              if not agents_yaml.is_file():
+                  errors.append(f"Missing agents/openai.yaml: {skill_md.parent}")
+              else:
+                  agents_text = agents_yaml.read_text(encoding="utf-8")
+                  for required in ("display_name:", "short_description:", "default_prompt:"):
+                      if required not in agents_text:
+                          errors.append(f"Missing {required} in {agents_yaml}")
+
+          for script in sorted(skill_root.glob("*/scripts/*.py")):
+              if not os.access(script, os.X_OK):
+                  errors.append(f"Script is not executable: {script}")
+              result = subprocess.run(
+                  ["python", "-m", "py_compile", str(script)],
+                  env={**os.environ, "PYTHONPYCACHEPREFIX": "/tmp/airc-pycache"},
+                  capture_output=True,
+                  text=True,
+              )
+              if result.returncode != 0:
+                  errors.append(f"py_compile failed for {script}: {result.stderr.strip()}")
+
+          for md in [root / "README.md", root / "README.en.md", root / "PUBLISHING.md"]:
+              text = md.read_text(encoding="utf-8")
+              for _, target in re.findall(r"\[([^\]]+)\]\(([^)]+)\)", text):
+                  if target.startswith(("http://", "https://", "#", "mailto:")):
+                      continue
+                  if not (md.parent / target).exists():
+                      errors.append(f"Missing local README link in {md}: {target}")
+
+          if errors:
+              for error in errors:
+                  print(error)
+              sys.exit(1)
 
           print(f"Validated {len(names)} skills.")
           PY
