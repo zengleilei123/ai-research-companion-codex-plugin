@@ -185,8 +185,10 @@ def collect(repo: Path, max_files: int, stale_hours: float) -> dict[str, Any]:
 
     papers_index = repo / "references" / "papers" / "index.md"
     code_index = repo / "references" / "code" / "index.md"
+    paper_cards_dir = repo / "knowledge" / "paper_cards"
     paper_rows = count_markdown_rows(papers_index)
     code_rows = count_markdown_rows(code_index)
+    paper_card_count = len(list(paper_cards_dir.glob("*.md"))) if paper_cards_dir.exists() else 0
 
     git_status = run_git(repo, ["status", "--short"])
     git_head = run_git(repo, ["log", "-1", "--oneline"])
@@ -263,10 +265,13 @@ def collect(repo: Path, max_files: int, stale_hours: float) -> dict[str, Any]:
         reference_signals.append("code index exists")
     reference_score += min(20, paper_rows * 5)
     reference_score += min(20, code_rows * 5)
+    reference_score = min(100, reference_score + min(15, paper_card_count * 3))
     if paper_rows:
         reference_signals.append(f"{paper_rows} paper rows")
     if code_rows:
         reference_signals.append(f"{code_rows} code rows")
+    if paper_card_count:
+        reference_signals.append(f"{paper_card_count} paper cards")
 
     change_score = 0
     change_signals = []
@@ -343,7 +348,7 @@ def collect(repo: Path, max_files: int, stale_hours: float) -> dict[str, Any]:
             "newest_checkpoint": newest_checkpoint,
             "alerts": alerts,
         },
-        "references": {"paper_rows": paper_rows, "code_rows": code_rows},
+        "references": {"paper_rows": paper_rows, "code_rows": code_rows, "paper_cards": paper_card_count},
         "context": {
             "session": file_info(session),
             "next_prompt": file_info(next_prompt),
@@ -365,7 +370,12 @@ def render_text(payload: dict[str, Any]) -> str:
         f"checkpoints={payload['training']['checkpoint_count']}, "
         f"alerts={','.join(payload['training']['alerts']) or 'none'}"
     )
-    lines.append(f"References: papers={payload['references']['paper_rows']}, code={payload['references']['code_rows']}")
+    lines.append(
+        "References: "
+        f"papers={payload['references']['paper_rows']}, "
+        f"code={payload['references']['code_rows']}, "
+        f"paper_cards={payload['references']['paper_cards']}"
+    )
     if payload["gaps"]:
         lines.append("Gaps: " + "; ".join(payload["gaps"][:8]))
     else:
@@ -397,6 +407,7 @@ def render_markdown(payload: dict[str, Any]) -> str:
             f"- Checkpoints: `{payload['training']['checkpoint_count']}`",
             f"- Alerts: `{', '.join(payload['training']['alerts']) or 'none'}`",
             f"- Reference rows: papers `{payload['references']['paper_rows']}`, code `{payload['references']['code_rows']}`",
+            f"- Paper cards: `{payload['references']['paper_cards']}`",
             "",
             "## Gaps",
             "",

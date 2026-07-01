@@ -1,0 +1,6 @@
+interface:
+  display_name: "Paper Taste Review"
+  short_description: "Read papers for academic and engineering taste."
+  default_prompt: "Use $paper-taste-review to read this paper for academic taste, engineering taste, failure cases, follow-up experiments, and expert questions."
+policy:
+  allow_implicit_invocation: true

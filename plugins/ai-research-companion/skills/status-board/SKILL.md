@@ -23,6 +23,7 @@ Inspect read-only evidence first:
 - `.research/context/NEXT_PROMPT.md`
 - `.research/changes/index.md` and recent `.research/changes/*.md`
 - `experiments/*/exp.yaml`, `notes.md`, `monitor.md`, and `results.md`
+- `knowledge/paper_cards/*.md`
 - `references/papers/index.md` and `references/code/index.md`
 - training folders such as `logs/`, `runs/`, `outputs/`, `checkpoints/`, `artifacts/`, `wandb/`, and `mlruns/`
 - git status and latest commit

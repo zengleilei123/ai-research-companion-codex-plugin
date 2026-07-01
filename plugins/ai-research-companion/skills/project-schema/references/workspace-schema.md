@@ -28,6 +28,7 @@ knowledge/
   pitfalls/
   decisions/
   literature_reviews/
+  paper_cards/
 references/
   papers/
     index.md

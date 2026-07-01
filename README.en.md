@@ -14,6 +14,7 @@ Most AI coding agents are good at executing a clear task. Research is harder bec
 
 - Is this idea actually worth testing, or does it only sound novel?
 - Have papers or codebases already validated something similar?
+- When reading one paper, can the agent judge the real quality of its problem, contribution, experiments, engineering, and failure cases?
 - Is the current experiment testing the core hypothesis, or just adding work?
 - Is model training healthy, or has it hit NaN, OOM, overfitting, stagnation, or resource waste?
 - Is there one status bar view for project memory, experiments, training, references, and handoff risk?
@@ -33,7 +34,8 @@ flowchart TD
     R --> S["project-schema<br/>research memory structure"]
     S --> B["project-onboarding<br/>project setup"]
     B --> C["literature-research<br/>papers and code scouting"]
-    C --> D["idea-judge + research-mentor<br/>taste / feasibility / MVP gate"]
+    C --> P["paper-taste-review<br/>single-paper academic / engineering taste"]
+    P --> D["idea-judge + research-mentor<br/>taste / feasibility / MVP gate"]
     D -->|"DO_NOW"| E["experiment-memory-scout<br/>prior experiments and evidence"]
     D -->|"PARK / REJECT / REFRAME"| C
     E --> F["MVP experiment"]
@@ -71,7 +73,7 @@ Suggested composition:
 | Natural-language entry | `research-router` decides which skill should run first | Not needed yet |
 | Project start | `project-schema` creates the memory layout, `project-onboarding` clarifies problem, resources, baselines, and MVP | Not needed yet |
 | Idea judgment | `idea-judge` / `research-mentor` returns DO_NOW, PARK, REJECT, or REFRAME | Supervisor-Skills `idea-evaluator` for a second opinion |
-| Survey | `literature-research` finds papers, baselines, code, and novelty risks | Supervisor-Skills `vibe-research-workflow` for AI-assisted research process guidance |
+| Survey | `literature-research` finds papers, baselines, code, and novelty risks; `paper-taste-review` deeply reads one paper and produces a paper card | Supervisor-Skills `vibe-research-workflow` for AI-assisted research process guidance |
 | Experiments | `experiment-memory-scout` avoids duplicate work, `training-monitor` monitors run health, `status-board` shows observability bars, `progress-review` checks blockers, `change-memory` records experiment config changes and rationale | Usually not needed unless you are shaping figures or paper story |
 | Paper shaping | `weekly-review` decides whether evidence is ready for writing | Supervisor-Skills `tech-paper-template` / `benchmark-paper-template` |
 | Figures and presentation | Tracks figure intent and evidence source | Supervisor-Skills `figure-designer` |
@@ -104,6 +106,7 @@ You can also invoke a bundled skill explicitly:
 ```text
 $ai-research-companion:research-router decide which research skill should handle this request.
 $ai-research-companion:project-schema create or validate the research memory structure for this project.
+$ai-research-companion:paper-taste-review read this paper for academic taste, engineering taste, failure cases, and follow-up opportunities.
 $ai-research-companion:research-mentor strictly evaluate this idea's research taste, engineering feasibility, and minimal validation experiment.
 $ai-research-companion:literature-research find related papers, baselines, and reference code.
 $ai-research-companion:training-monitor inspect my current training run and tell me whether to continue, intervene, or stop.
@@ -140,6 +143,7 @@ Or invoke skills explicitly:
 /project-onboarding
 /project-schema create the project research structure.
 /research-router decide whether to start with survey, idea evaluation, training monitoring, or progress review.
+/paper-taste-review use Taste Skill to deeply read this paper.
 /research-mentor strictly evaluate this idea.
 /literature-research find related papers, baselines, and code.
 /training-monitor monitor the current training process.
@@ -192,6 +196,49 @@ First use AI Research Companion to inspect project memory, experiment records, a
 If the idea is DO_NOW, call idea-evaluator for a second opinion.
 If the project has entered the writing phase, call research-paper-writing to revise the Introduction and run claim-evidence alignment.
 ```
+
+## Academic and Engineering Taste Paper Reading
+
+This version includes `paper-taste-review`. It is not a normal paper summary skill. It turns each paper into judgment training:
+
+- judge whether the problem matters, not only whether the paper is SOTA
+- identify whether the contribution is essential or packaging
+- find assumptions, limits, and failure cases
+- evaluate whether the repo / implementation is clean, reproducible, and scalable
+- turn the paper into reproduction tasks, stress tests, project ideas, blog/repo material, or expert questions
+
+Natural-language usage:
+
+```text
+Use Taste Skill to read this paper. Do not only summarize it; focus on academic taste, engineering taste, failure cases, follow-up experiments, and questions I can ask the author.
+```
+
+The skill outputs:
+
+```text
+A. One-sentence summary
+B. The real problem
+C. Core assumptions
+D. Method decomposition: essence vs packaging
+E. Experiment credibility
+F. Failure cases
+G. Academic Taste score
+H. Engineering Taste score
+I. Taste learned
+J. Literature tree position
+K. Follow-up experiments and project opportunities
+L. Expert communication questions
+M. Paper Card
+N. Recommended action grade: A / B / C / D
+```
+
+Recommended place to save the final `Paper Card`:
+
+```text
+knowledge/paper_cards/
+```
+
+First principle: paper reading is not information consumption. Each paper should leave one judgment, one failure case, one reproducible experiment, and one expert-level question.
 
 ## Automated Training Monitoring
 
@@ -318,6 +365,7 @@ First principle: git records what happened; change memory records why it happene
 | `project-schema` | New project, missing `.research/`, experiments, references, or gap states | Standard research workspace structure, starter files, schema risks |
 | `project-onboarding` | New project or unclear project setup | Research target, constraints, baselines, MVP, setup questions |
 | `literature-research` | Before idea evaluation or experiments | Papers, code, baselines, novelty risks, reference gaps |
+| `paper-taste-review` | Deeply reading one paper, judging academic/engineering taste, or generating a paper card | Problem/contribution/assumptions/experiments/failure cases/taste scores/follow-up/expert questions |
 | `research-mentor` | When strict advisor judgment is needed | Engineering/research feasibility, taste judgment, MVP design |
 | `idea-judge` | When a raw idea needs a decision | Falsifiable hypothesis, success/failure criteria, DO_NOW/PARK/REJECT/REFRAME |
 | `experiment-memory-scout` | Before starting or interpreting experiments | Prior experiments, weekly reviews, similar failures, reusable evidence |

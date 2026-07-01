@@ -39,6 +39,7 @@ knowledge/insights/
 knowledge/pitfalls/
 knowledge/decisions/
 knowledge/literature_reviews/
+knowledge/paper_cards/
 references/papers/
 references/code/
 ```
