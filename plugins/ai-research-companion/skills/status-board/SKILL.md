@@ -28,19 +28,19 @@ Inspect read-only evidence first:
 - training folders such as `logs/`, `runs/`, `outputs/`, `checkpoints/`, `artifacts/`, `wandb/`, and `mlruns/`
 - git status and latest commit
 
-Prefer the bundled collector:
+Natural language is the primary interface. Use the bundled collector only when deterministic local signals are useful:
 
 ```bash
 plugins/ai-research-companion/skills/status-board/scripts/collect_status_board.py --repo . --format text
 ```
 
-For a markdown status file:
+For a markdown status file, use the collector as an automation hook:
 
 ```bash
 plugins/ai-research-companion/skills/status-board/scripts/collect_status_board.py --repo . --format markdown --write-status .research/status.md
 ```
 
-For terminal refresh:
+For terminal refresh, use the collector as an advanced hook:
 
 ```bash
 plugins/ai-research-companion/skills/status-board/scripts/collect_status_board.py --repo . --format text --watch --interval 30

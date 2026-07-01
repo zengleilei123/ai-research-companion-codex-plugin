@@ -2,120 +2,38 @@
 
 英文版：[README.en.md](README.en.md)
 
-AI Research Companion 是一个面向 Codex / Claude Code 的研究流程插件。它不是 CLI，也不是一个单独运行的服务；它是一组可以被 agent 自动读取的 `SKILL.md`，目标是让 AI 在你的项目文件夹里像一个严格的科研协作者一样工作。
+AI Research Companion 是一个面向 Codex / Claude Code 的 agent-native 研究流程插件。它不是 CLI，也不是单独运行的服务；它是一组可被 agent 自动读取的 `SKILL.md`，用于在研究项目中提供严格判断、项目记忆、训练监控和状态可观测。
 
 仓库地址：https://github.com/zengleilei123/ai-research-companion-codex-plugin
 
-## 为什么做这个项目
+## 这个插件解决什么
 
-大多数 AI coding agent 很擅长“执行一个明确任务”，但科研里最困难的部分往往不是执行，而是判断：
+它关注科研中最容易丢失的判断链：
 
-- 这个 idea 是否真的值得做，而不只是听起来新？
-- 有没有已有论文或代码已经做过相似验证？
-- 读一篇论文时，是否能判断它的问题、贡献、实验、工程实现和 failure case 的真实质量？
-- 当前实验是在推进核心假设，还是在堆无关工作量？
-- 模型训练是否健康，还是已经出现 NaN、OOM、过拟合、停滞或资源浪费？
-- 有没有一个统一状态条，能实时看到项目记忆、实验、训练、参考库和上下文交接风险？
-- 每次修改项目后，是否记得当时为什么这样改、验证过什么、还剩什么风险？
-- 第二周、第三周继续做实验时，是否记得上周失败过什么？
-- 什么时候应该进入写作，什么时候应该 park / reject / reframe？
+- idea 是否值得做，而不是只听起来新
+- 单篇论文的问题、贡献、实验和 failure case 是否真的有 taste
+- 相关论文、代码和 baseline 是否已经覆盖当前想法
+- 实验是否在推进核心假设
+- 训练过程是否健康，是否应该继续、干预或停止
+- 长上下文后是否还能恢复“为什么这样改、下一步做什么”
 
-AI Research Companion 解决的是研究流程里的“判断与记忆层”。它让 agent 在自然对话中主动检查旧实验、参考论文、代码库、周报和项目设定，然后再给出严格建议。每次关键对话后，它都应该给出三个可选下一步，而不是只给一个笼统结论。
+每次关键对话后，插件应给出三个下一步选项，而不是只给一个笼统结论。
 
-## 项目定位
+## 快速开始
 
-这个仓库是一个编排层，而不是替代所有科研 skills 的大杂烩。
-
-```mermaid
-flowchart TD
-    A["自然语言请求"] --> R["research-router<br/>选择最小 skill 序列"]
-    R --> S["project-schema<br/>项目记忆结构"]
-    S --> B["project-onboarding<br/>项目设定"]
-    B --> C["literature-research<br/>论文与代码调研"]
-    C --> P["paper-taste-review<br/>单篇论文 academic / engineering taste"]
-    P --> D["idea-judge + research-mentor<br/>严格判断 taste / 可行性 / MVP"]
-    D -->|"DO_NOW"| E["experiment-memory-scout<br/>查历史实验与证据"]
-    D -->|"PARK / REJECT / REFRAME"| C
-    E --> F["MVP 实验"]
-    F --> G["training-monitor<br/>训练健康监控"]
-    G --> O["status-board<br/>状态条与可观测面板"]
-    O --> H["progress-review<br/>进度与阻塞检查"]
-    H --> I["weekly-review<br/>周复盘与轨道判断"]
-    I -->|"证据足够"| J["写作与投稿准备"]
-    I -->|"证据不足"| E
-    J --> K["change-memory<br/>记录改动原因与证据"]
-    K --> L["context-companion<br/>保存状态与下一轮提示"]
-```
-
-## 和外部 Skills 如何配合
-
-我建议把下面两个仓库作为“外部专家层”接入，而不是直接复制进本插件仓库：
-
-- [HKUSTDial/Supervisor-Skills](https://github.com/HKUSTDial/Supervisor-Skills.git)：适合作为第二导师视角，用在 idea 评估、论文结构、图设计、投稿前审查。
-- [Master-cai/Research-Paper-Writing-Skills](https://github.com/Master-cai/Research-Paper-Writing-Skills)：适合作为论文写作专项技能，用在 Abstract / Introduction / Method / Experiments / Conclusion 和 claim-evidence 检查。
-
-```mermaid
-flowchart LR
-    Host["Codex / Claude Code<br/>浏览器、GitHub、本地文件、MCP"] --> ARC["AI Research Companion<br/>流程编排 + 项目记忆 + 严格决策"]
-    ARC --> SS["Supervisor-Skills<br/>副导师判断、idea 评分、图与论文模板"]
-    ARC --> RPW["Research-Paper-Writing-Skills<br/>段落写作、章节重写、claim-evidence 对齐"]
-    SS --> Paper["更强的研究叙事"]
-    RPW --> Paper
-    ARC --> Evidence["实验证据与周报闭环"]
-```
-
-推荐合流方式：
-
-| 阶段 | 本插件负责 | 可选外部 skill |
-| --- | --- | --- |
-| 自然语言入口 | `research-router` 判断应该先用哪个 skill | 暂不需要 |
-| 新项目启动 | `project-schema` 建立研究记忆结构，`project-onboarding` 明确问题、资源、baseline、MVP | 暂不需要 |
-| idea 判断 | `idea-judge` / `research-mentor` 给出 DO_NOW、PARK、REJECT、REFRAME | Supervisor-Skills 的 `idea-evaluator` 做第二意见 |
-| 调研阶段 | `literature-research` 找论文、baseline、参考代码、新颖性风险，`paper-taste-review` 深读单篇论文并形成 paper card | Supervisor-Skills 的 `vibe-research-workflow` 辅助 AI 科研流程 |
-| 实验阶段 | `experiment-memory-scout` 防止重复实验，`training-monitor` 监控训练健康，`status-board` 展示状态条，`progress-review` 检查阻塞，`change-memory` 记录实验配置和修改原因 | 暂不需要，除非要设计图或论文故事 |
-| 论文成型 | `weekly-review` 判断是否进入写作 | Supervisor-Skills 的 `tech-paper-template` / `benchmark-paper-template` |
-| 图表与表达 | 记录图表需求与证据来源 | Supervisor-Skills 的 `figure-designer` |
-| 投稿前 | `context-companion` 固化当前状态 | Supervisor-Skills 的 `pre-submission-reviewer`，Research-Paper-Writing-Skills 的 `research-paper-writing` |
-
-> 注意：本仓库默认不 vendoring 这些第三方 skills。这样可以避免许可证、更新节奏和项目边界混在一起。你可以在自己的研究项目中按需安装它们，让 agent 同时看到多个 skills。
-
-## 快速开始：Codex 插件安装
-
-把这个仓库加入 Codex plugin marketplace：
+把仓库加入 Codex plugin marketplace：
 
 ```bash
 codex plugin marketplace add https://github.com/zengleilei123/ai-research-companion-codex-plugin.git --sparse .agents/plugins
 ```
 
-重启 Codex，在 Plugins 中安装：
+重启 Codex，在 Plugins 中安装 `AI Research Companion`。然后进入你的研究项目目录，直接自然语言使用：
 
 ```text
-AI Research Companion
+我有一个新的研究想法。请先做项目设定，然后严格判断是否值得做 MVP，并给出三个下一步选项。
 ```
 
-然后进入你的研究项目文件夹，直接自然语言使用：
-
-```text
-我有一个新的研究想法。请先做项目设定，然后严格判断它是否值得做 MVP，并给出三个下一步选项。
-```
-
-也可以显式点名某个 skill：
-
-```text
-$ai-research-companion:research-router 判断我这个请求应该走哪个研究 skill。
-$ai-research-companion:project-schema 创建或检查这个项目的研究记忆结构。
-$ai-research-companion:paper-taste-review 用 academic taste 和 engineering taste 深读这篇论文。
-$ai-research-companion:research-mentor 严格评估这个 idea 的科研 taste、工程可行性和最小验证实验。
-$ai-research-companion:literature-research 帮我找相关论文、baseline 和参考代码库。
-$ai-research-companion:training-monitor 检查当前训练 run 是否健康，是否应该继续、干预或停止。
-$ai-research-companion:status-board 展示当前项目状态条、风险和可观测缺口。
-$ai-research-companion:change-memory 记录这次修改改了什么、为什么改、验证过什么、下一步是什么。
-$ai-research-companion:progress-review 检查当前项目进度、阻塞和上周实验证据。
-```
-
-## 快速开始：Claude Code 使用
-
-Claude Code 可以读取项目级或全局 skills。项目级安装：
+Claude Code 项目级安装：
 
 ```bash
 git clone https://github.com/zengleilei123/ai-research-companion-codex-plugin.git .agent-libs/ai-research-companion
@@ -123,267 +41,101 @@ mkdir -p .claude/skills
 cp -R .agent-libs/ai-research-companion/plugins/ai-research-companion/skills/* .claude/skills/
 ```
 
-在项目根目录启动 Claude Code：
+然后在项目根目录启动 `claude`，用自然语言触发。
 
-```bash
-claude
+## 四层架构
+
+```mermaid
+flowchart LR
+    U["自然语言请求"] --> R["research-router"]
+    R --> C["Core<br/>项目结构与启动"]
+    R --> J["Judgment<br/>论文、idea、导师判断"]
+    R --> M["Memory<br/>实验、变更、上下文"]
+    R --> O["Operations<br/>训练监控、状态条、复盘"]
 ```
 
-自然语言触发：
-
-```text
-我准备开始一个新的研究项目。请先做项目设定，并检查是否需要补充论文库、代码库和实验记忆。
-```
-
-也可以显式调用：
-
-```text
-/project-onboarding
-/project-schema 创建项目研究结构。
-/research-router 判断应该先做调研、idea 评估、训练监控还是进度复盘。
-/paper-taste-review 用 Taste Skill 深读这篇论文。
-/research-mentor 严格评估这个 idea。
-/literature-research 找相关论文、baseline 和代码实现。
-/training-monitor 监控当前训练过程。
-/status-board 展示当前项目状态条和可观测缺口。
-/change-memory 记录本次项目修改的原因、证据和下一步。
-/weekly-review 生成本周研究复盘。
-```
-
-全局安装：
-
-```bash
-mkdir -p ~/.claude/skills
-cp -R plugins/ai-research-companion/skills/* ~/.claude/skills/
-```
-
-## 可选：在同一研究项目中安装外部 Skills
-
-如果你想把 Supervisor-Skills 和 Research-Paper-Writing-Skills 接入同一个研究项目，可以放在项目级 skills 目录里。
-
-Codex 项目级示例：
-
-```bash
-mkdir -p .agents/skills .agent-libs
-git clone https://github.com/HKUSTDial/Supervisor-Skills.git .agent-libs/Supervisor-Skills
-git clone https://github.com/Master-cai/Research-Paper-Writing-Skills.git .agent-libs/Research-Paper-Writing-Skills
-
-cp -R .agent-libs/Supervisor-Skills/plugins/phd-research/skills/idea-evaluator .agents/skills/
-cp -R .agent-libs/Supervisor-Skills/plugins/phd-research/skills/figure-designer .agents/skills/
-cp -R .agent-libs/Supervisor-Skills/plugins/phd-research/skills/pre-submission-reviewer .agents/skills/
-cp -R .agent-libs/Research-Paper-Writing-Skills/research-paper-writing .agents/skills/
-```
-
-Claude Code 项目级示例：
-
-```bash
-mkdir -p .claude/skills .agent-libs
-git clone https://github.com/HKUSTDial/Supervisor-Skills.git .agent-libs/Supervisor-Skills
-git clone https://github.com/Master-cai/Research-Paper-Writing-Skills.git .agent-libs/Research-Paper-Writing-Skills
-
-cp -R .agent-libs/Supervisor-Skills/plugins/phd-research/skills/idea-evaluator .claude/skills/
-cp -R .agent-libs/Supervisor-Skills/plugins/phd-research/skills/figure-designer .claude/skills/
-cp -R .agent-libs/Supervisor-Skills/plugins/phd-research/skills/pre-submission-reviewer .claude/skills/
-cp -R .agent-libs/Research-Paper-Writing-Skills/research-paper-writing .claude/skills/
-```
-
-推荐自然语言用法：
-
-```text
-请先用 AI Research Companion 检查当前项目记忆、实验记录和文献缺口。
-如果 idea 进入 DO_NOW，再调用 idea-evaluator 做第二意见。
-如果已经进入写作阶段，再调用 research-paper-writing 重写 Introduction，并做 claim-evidence 对齐检查。
-```
-
-## 学术与工程 Taste 论文阅读
-
-当前版本包含 `paper-taste-review`。它不是普通论文总结，而是把每次读论文变成一次判断力训练：
-
-- 判断问题是否重要，而不是只看 SOTA 表格
-- 识别核心贡献是本质性的还是包装性的
-- 找出方法假设、局限和 failure cases
-- 评价 repo / 实现是否干净、可复现、可扩展
-- 把论文转成可复现实验、stress test、项目 idea、博客/repo 或专家交流问题
-
-自然语言用法：
-
-```text
-用 Taste Skill 读这篇论文。不要只总结，重点判断 academic taste、engineering taste、failure cases、follow-up 实验和可以问作者的问题。
-```
-
-该 skill 会输出：
-
-```text
-A. 一句话总结
-B. 真正解决的问题
-C. 核心假设
-D. 方法拆解：本质 vs 包装
-E. 实验可信度
-F. Failure cases
-G. Academic Taste 评分
-H. Engineering Taste 评分
-I. 我能学到的 taste
-J. literature tree 位置
-K. follow-up 实验和项目机会
-L. 专家交流问题
-M. Paper Card
-N. 建议行动等级：A / B / C / D
-```
-
-建议把最终 `Paper Card` 保存到：
-
-```text
-knowledge/paper_cards/
-```
-
-第一性原则：论文阅读不是消费信息，而是留下一个判断、一个 failure case、一个可复现实验、一个可交流的问题。
-
-## 自动监控训练过程
-
-当前版本包含 `training-monitor`，用于把训练日志、指标、checkpoint 和资源状态变成研究决策信号。它适合监控：
-
-- loss / val loss / target metric 是否正常收敛
-- 是否出现 NaN、Inf、CUDA OOM、进程被 kill、dataloader crash
-- checkpoint 是否按预期产生，日志是否长时间没有更新
-- train/validation gap 是否显示过拟合
-- GPU 利用率、显存、磁盘和 dataloader 是否存在瓶颈
-- 当前训练是否支持 MVP 假设，还是需要 stop / restart / reframe
-
-推荐让 agent 在三种模式下使用：
-
-| 模式 | 适合场景 | 用法 |
+| 层级 | Skills | 作用 |
 | --- | --- | --- |
-| 按需检查 | 你想知道训练是否还值得继续 | “用 training-monitor 检查这个 run 是否健康” |
-| 实验节点检查 | 每个 evaluation / checkpoint 后做判断 | “读取最近日志，判断是否继续跑到下一个 milestone” |
-| 自动化巡检 | 长训练、夜间训练、集群任务 | 在 Codex/Claude 的自动化、提醒或外部 cron 中定期触发本 skill |
+| Core | `research-router`, `project-schema`, `project-onboarding` | 选择最小 skill 序列，建立项目记忆结构，启动新项目 |
+| Judgment | `literature-research`, `paper-taste-review`, `idea-judge`, `research-mentor` | 查相关工作，深读论文，判断 idea taste 和 MVP 可行性 |
+| Memory | `experiment-memory-scout`, `change-memory`, `context-companion` | 查历史实验，记录修改原因，保存下一轮恢复提示 |
+| Operations | `training-monitor`, `status-board`, `progress-review`, `weekly-review` | 监控训练，展示状态条，检查进度，做周复盘 |
 
-示例：
-
-```text
-$ai-research-companion:training-monitor 检查 experiments/exp_023 和 logs/train.log。
-请判断当前训练是否 healthy_continue、watch_closely、intervene_now、stop_or_restart 或 insufficient_signal，并给出三个下一步选项。
-```
-
-该 skill 还包含一个只读结构化采集脚本：
-
-```bash
-plugins/ai-research-companion/skills/training-monitor/scripts/collect_training_signals.py --run experiments/exp_023 --gpu
-```
-
-第一性原则：监控不是为了生成漂亮报表，而是为了减少无效训练时间。训练健康只是工程信号；是否值得继续，还要结合 `experiment-memory-scout` 的历史证据和 `research-mentor` 的假设判断。
-
-## 实时状态条和可观测面板
-
-当前版本包含 `status-board`，用于把项目状态压缩成一组可读的状态条：
+## 常用自然语言
 
 ```text
-Research Status Board
-Overall             [########--] 80% watch
-Project Memory      [#########-] 90% ok
-Experiments         [######----] 60% watch
-Training Observed   [####------] 40% gap
-References          [#######---] 70% ok
-Change Memory       [########--] 80% ok
-Context Handoff     [#####-----] 50% gap
+帮我初始化这个研究项目，问我最多三个关键设置问题。
 ```
-
-它关注的不是单个训练 run 的细节，而是整个研究项目当前是否可观察、可恢复、可继续推进。默认会检查：
-
-- `.research/settings.yaml`、`.research/status.md`、`SESSION_STATE.md`、`NEXT_PROMPT.md`
-- `experiments/` 下的实验计划、monitor 和 results
-- 训练日志、checkpoint 和常见错误信号
-- `references/papers/index.md` 和 `references/code/index.md`
-- `.research/changes/` 里的修改记忆
-- git 当前是否有未记录改动
-
-自然语言用法：
 
 ```text
-帮我展示当前项目的 status board，指出哪些 bar 是 gap，并给出三个下一步。
+用 Taste Skill 读这篇论文，重点判断 academic taste、engineering taste、failure cases 和 follow-up 实验。
 ```
-
-保存为项目状态文件：
-
-```bash
-plugins/ai-research-companion/skills/status-board/scripts/collect_status_board.py --repo . --format markdown --write-status .research/status.md
-```
-
-终端实时刷新：
-
-```bash
-plugins/ai-research-companion/skills/status-board/scripts/collect_status_board.py --repo . --format text --watch --interval 30
-```
-
-第一性原则：状态条不是为了好看，而是为了让研究系统的缺口一眼可见。低分 bar 应该触发对应 skill，例如训练低分用 `training-monitor`，上下文低分用 `context-companion`，修改记忆低分用 `change-memory`。
-
-## 项目变更记忆
-
-长上下文变慢或被压缩后，最容易丢失的不是代码 diff，而是“为什么当时这么改”。当前版本新增 `change-memory`，用于在你的研究项目中记录每次关键修改：
-
-- 改了哪些文件
-- 为什么改
-- 看过哪些证据
-- 跑过哪些命令或测试
-- 做了什么决定
-- 还有什么风险
-- 下一步应该接什么
-
-它会使用项目内的记忆结构：
 
 ```text
+严格评估这个 idea 是否值得做 MVP。先检查相关论文、baseline 和参考代码。
+```
+
+```text
+检查当前训练 run 是否健康，判断应该继续、干预还是停止。
+```
+
+```text
+展示当前项目 status board，指出哪些 bar 是 gap，并给出三个下一步。
+```
+
+```text
+记录本轮修改的 change memory，然后写下一轮 context handoff prompt。
+```
+
+## 项目记忆结构
+
+`project-schema` 会在你的研究项目中维护这些文件和目录：
+
+```text
+.research/settings.yaml
+.research/status.md
+.research/context/SESSION_STATE.md
+.research/context/NEXT_PROMPT.md
 .research/changes/index.md
-.research/changes/YYYY-MM-DD.md
+experiments/
+journal/
+knowledge/paper_cards/
+knowledge/literature_reviews/
+references/papers/
+references/code/
 ```
 
-推荐使用方式：
+这些是用户研究项目里的状态文件，不应提交到本插件发布仓库。
 
-```text
-我刚刚完成了一轮实验配置和代码修改，请记录这次 change memory，重点写清楚为什么这样改以及验证过什么。
-```
+## 自动化 Hook
 
-或者在长会话结束前：
+主入口始终是自然语言。下面脚本只作为 agent 内部采集器或高级自动化 hook，不是插件的主要使用方式。
 
-```text
-请先记录本轮修改的 change memory，然后用 context-companion 写下一轮恢复提示。
-```
-
-该 skill 还包含一个只读 git 信号采集脚本：
-
-```bash
-plugins/ai-research-companion/skills/change-memory/scripts/collect_change_signals.py --repo . --include-diff-stat
-```
-
-第一性原则：git 记录“发生了什么”，change memory 记录“为什么这样做以及下一步该如何继续”。两者应该同时存在。
-
-## 内置 Skills
-
-| Skill | 使用时机 | 产出 |
+| Skill | 脚本 | 用途 |
 | --- | --- | --- |
-| `research-router` | 自然语言请求很宽泛或多个 skills 都可能适用时 | 最小 skill 序列、首个 skill、后续 skill |
-| `project-schema` | 新项目、缺少 `.research/`、experiments、references 或出现 gap 时 | 标准研究工作区结构、starter 文件、schema 风险 |
-| `project-onboarding` | 新项目或项目设定不清晰时 | 研究目标、约束、baseline、MVP、项目配置问题 |
-| `literature-research` | 评估 idea 或实验前 | 论文、代码、baseline、新颖性风险和参考缺口 |
-| `paper-taste-review` | 深读单篇论文、判断 academic/engineering taste、生成 paper card 时 | 问题/贡献/假设/实验/failure case/taste 评分/follow-up/专家问题 |
-| `research-mentor` | 需要严格导师判断时 | 工程/科研可行性、taste 判断、MVP 设计 |
-| `idea-judge` | 原始 idea 需要决策时 | 可证伪假设、成功/失败标准、DO_NOW/PARK/REJECT/REFRAME |
-| `experiment-memory-scout` | 开始或解释实验前 | 历史实验、周报、相似失败、可复用证据 |
-| `training-monitor` | 模型训练运行中或训练后 | loss/metric/checkpoint/GPU/异常信号、健康分类、是否继续或干预 |
-| `status-board` | 想看统一状态条、实时可观测面板或项目健康概览时 | 项目记忆、实验、训练、参考库、修改记忆、上下文交接状态条 |
-| `change-memory` | 项目修改后、实验配置变更后、上下文压缩前 | 改动摘要、原因、证据、命令/测试、风险和下一步 |
-| `progress-review` | 检查当前项目状态时 | 进度、阻塞、风险、下一步 |
-| `weekly-review` | 每周复盘时 | continue / park / reject / reframe 判断 |
-| `context-companion` | 上下文压缩或切换 agent 前 | 当前状态、下一轮启动提示 |
+| `training-monitor` | `collect_training_signals.py` | 只读采集日志、指标、checkpoint、GPU 信号 |
+| `status-board` | `collect_status_board.py` | 生成文本/JSON/Markdown 状态条，可用于定时刷新 |
+| `change-memory` | `collect_change_signals.py` | 只读采集 git status、diff stat、最新 commit |
 
-## 浏览器和互联网能力
+## 外部 Skills
 
-这个仓库本身只提供研究工作流 skills。浏览网页、打开 Chrome、搜索论文、访问 GitHub 等能力来自宿主 agent：
+本插件是编排层，不 vendoring 第三方 skills。建议按需在你的研究项目里安装：
 
-- Codex App：启用 Codex 的 Browser / Chrome / GitHub 等插件后，本插件可以要求 agent 使用这些能力。
+- [HKUSTDial/Supervisor-Skills](https://github.com/HKUSTDial/Supervisor-Skills.git)：第二导师、idea 评分、图设计、投稿前审查。
+- [Master-cai/Research-Paper-Writing-Skills](https://github.com/Master-cai/Research-Paper-Writing-Skills)：论文段落写作、章节重写、claim-evidence 对齐。
+
+## 浏览器和互联网
+
+浏览网页、打开 Chrome、访问 GitHub、搜索论文等能力来自宿主 agent：
+
+- Codex App：启用 Browser / Chrome / GitHub 等插件后，本插件可以要求 agent 使用这些能力。
 - Claude Code：使用 Claude Code 已配置的 web search、MCP、浏览器或本地工具。
 
-也就是说，AI Research Companion 负责“什么时候该调研、怎么判断、如何组织证据”；具体能不能联网、能不能控制浏览器，取决于你的 Codex 或 Claude Code 环境。
+AI Research Companion 负责判断什么时候该调研、怎么组织证据、如何推进研究；具体联网能力取决于宿主环境。
 
-## 仓库结构
+## 仓库边界
+
+本仓库只包含插件发布内容：
 
 ```text
 .agents/plugins/marketplace.json
@@ -413,9 +165,7 @@ personal research notes
 
 ## 参考与致谢
 
-本 README 的结构参考了两个开源 skills 仓库的表达方式，并建议把它们作为可选外部专家层接入：
+本项目建议把以下仓库作为可选专家层组合使用，但不复制其内容：
 
 - [HKUSTDial/Supervisor-Skills](https://github.com/HKUSTDial/Supervisor-Skills.git)
 - [Master-cai/Research-Paper-Writing-Skills](https://github.com/Master-cai/Research-Paper-Writing-Skills)
-
-本仓库没有复制它们的 skill 内容。若你在自己的项目中安装第三方 skills，请遵守对应仓库的许可证和归属要求。

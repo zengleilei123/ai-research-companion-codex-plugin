@@ -23,7 +23,7 @@ Inspect the smallest useful set of sources:
 - touched experiment files such as `exp.yaml`, `notes.md`, `monitor.md`, and `results.md`
 - relevant docs, configs, scripts, tests, logs, or generated artifacts mentioned by the user
 
-When available, run the read-only helper:
+Natural language is the primary interface. When deterministic git signals are useful, run the read-only helper:
 
 ```bash
 plugins/ai-research-companion/skills/change-memory/scripts/collect_change_signals.py --repo . --include-diff-stat

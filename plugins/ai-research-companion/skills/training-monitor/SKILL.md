@@ -39,7 +39,7 @@ If available and safe, use read-only system probes such as `nvidia-smi`, `ps`, `
 ## Workflow
 
 1. Identify the active run, training objective, dataset, baseline, metric, and expected checkpoint/log paths.
-2. Prefer the bundled structured collector when local files are available:
+2. Prefer the bundled structured collector when deterministic local parsing is useful. Treat it as an internal sensor, not the user-facing interface:
    - `scripts/collect_training_signals.py --run <run_dir>`
    - `scripts/collect_training_signals.py --log <log_file> --checkpoint <checkpoint_dir> --gpu`
 3. Collect telemetry:
@@ -58,9 +58,9 @@ If available and safe, use read-only system probes such as `nvidia-smi`, `ps`, `
 6. Explain the decision using file paths, log snippets, metric values, or timestamps.
 7. If appropriate, create or update `experiments/<run>/monitor.md` with a short monitoring note.
 
-## Bundled Script
+## Internal Collector
 
-Use `scripts/collect_training_signals.py` for repeatable read-only telemetry collection. It emits JSON with:
+Use `scripts/collect_training_signals.py` for repeatable read-only telemetry collection when local logs or checkpoints are available. It emits JSON with:
 
 - scanned log files
 - latest metric values parsed from log tails
